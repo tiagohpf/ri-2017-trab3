@@ -4,7 +4,9 @@ import Documents.Document;
 import Documents.XMLDocument;
 import Utils.Pair;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * IR, October 2017
@@ -21,20 +23,20 @@ import java.util.List;
 * Class that tokenizes a file or a directory, given special attention to certain characters.
 */
 public class CompleteTokenizer implements Tokenizer{
-    private List<Pair<String, Integer>> terms;
+    private Map<Integer, List<String>> terms;
     
     /**
      * Constructor
      */
     public CompleteTokenizer() {
-        terms = new ArrayList<>();
+        terms = new HashMap<>();
     }
     
     /**
      * Get all terms of tokenizer
      * @return list of terms
      */
-    public List<Pair<String, Integer>> getTerms() {
+    public Map<Integer, List<String>> getTerms() {
         return terms;
     }
     
@@ -57,6 +59,7 @@ public class CompleteTokenizer implements Tokenizer{
             content = content.replaceAll("\n", " ");
             // Tokenize by white space
             String []text = content.split(" ");
+            List<String> words = new ArrayList<>();
             for (int i = 0; i < text.length; i++) {
                 String term = text[i];
                 /*
@@ -104,8 +107,9 @@ public class CompleteTokenizer implements Tokenizer{
                     term = term.replaceAll("=", "");                }
                 // Just add tokens with content and without whitespaces
                 if (term.trim().length() > 0)
-                    terms.add(new Pair<>(term, id));
+                    words.add(term);
             }
+            terms.put(id, words);
         }
     }
     

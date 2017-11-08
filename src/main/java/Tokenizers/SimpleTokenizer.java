@@ -2,9 +2,10 @@ package Tokenizers;
 
 import Documents.Document;
 import Documents.XMLDocument;
-import Utils.Pair;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * IR, October 2017
@@ -21,20 +22,20 @@ import java.util.List;
 * Class that tokenizes a file or a directory, divided by whitespaces.
 */
 public class SimpleTokenizer implements Tokenizer{
-    private List<Pair<String, Integer>> terms;
+    private Map<Integer, List<String>> terms;
     
     /**
      * Constructor
      */
     public SimpleTokenizer() {
-        terms = new ArrayList<>();
+        terms = new HashMap<>();
     }
     
     /**
      * Get all terms of tokenizer.
      * @return list of terms
      */
-    public List<Pair<String, Integer>> getTerms() {
+    public Map<Integer, List<String>>  getTerms() {
         return terms;
     }
     
@@ -56,11 +57,13 @@ public class SimpleTokenizer implements Tokenizer{
             String newContent = content.replaceAll("[^a-zA-Z ]", " ");
             // Tokenize by whitespaces.
             String[] temp = newContent.split(" ");
+            List<String> words = new ArrayList<>();
             for(String s : temp){
                 // Only accept words with equal or more than 3 characters.
                 if(s.trim().length() >=3 )
-                    terms.add(new Pair<>(s.trim().toLowerCase(), document.getId()));
+                    words.add(s.trim().toLowerCase());
             }
+            terms.put(document.getId(), words);
         }
     }
 }

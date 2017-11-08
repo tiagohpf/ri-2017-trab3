@@ -2,6 +2,7 @@ package Scoring;
 
 import Utils.Key;
 import Utils.Pair;
+import Utils.Values;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -28,9 +29,9 @@ import java.util.stream.Collectors;
 // Class that scores the queries
 public class QueryScoring {
     // Indexer
-    private final Map<String, List<Pair<Integer, Integer>>> indexer;
+    private final Map<String, Values> indexer;
     // Queries
-    private final List<Pair<String, Integer>> queries;
+    private final Map<Integer, List<String>> queries;
     // Number of words in the query that appear in the document
     private Map<Key, Integer> numberOfTerms;
     // Frequency of query words in the document
@@ -44,7 +45,7 @@ public class QueryScoring {
      * @param queries
      * @param size 
      */
-    public QueryScoring(Map<String, List<Pair<Integer, Integer>>> indexer, List<Pair<String, Integer>> queries, int size) {
+    public QueryScoring(Map<String, Values> indexer, Map<Integer, List<String>> queries, int size) {
         this.indexer = indexer;
         this.queries = queries;
         this.size = size;
@@ -72,14 +73,14 @@ public class QueryScoring {
      * Calculate the two scorings
      */
     public void calculateScores() {
-        for (int i = 1; i <= size; i++) {
-            List<String> terms = new ArrayList<>(getTermsOfQuery(i));
+        for (Map.Entry<Integer, List<String>> entry : queries.entrySet()) {
+            List<String> terms = entry.getValue();
             for (String term : terms) {
                 // Get documents and respectively frequency where appears a certain term
-                List<Pair<Integer, Integer>> docId_freq = indexer.get(term);
+                Values docId_freq = indexer.get(term);
                 // If the Indexer has the term, add to scores
                 if (docId_freq != null)
-                    addQueryIdToScores(i, docId_freq);
+                    addQueryIdToScores(entry.getKey(), docId_freq);
             }
         }
         // Sort terms
@@ -136,27 +137,14 @@ public class QueryScoring {
     }
     
     /**
-     * Get terms of certain query 
-     * @param id
-     * @return terms
-     */
-    private List<String> getTermsOfQuery(int id) {
-        return queries.stream()
-                .filter(query -> query.getValue() == id)
-                .map(query -> query.getKey())
-                .collect(Collectors.toList()); 
-    }
-    
-    /**
      * Add query to scores
      * @param queryId
      * @param docId_freq 
      */
-    private void addQueryIdToScores(int queryId, List<Pair<Integer, Integer>> docId_freq) {
-        for (int i = 0; i < docId_freq.size(); i++) {
+    private void addQueryIdToScores(int queryId, Values docId_freq) {
+        for (Map.Entry<Integer, Integer> entry : docId_freq.getValues().entrySet()) {
            // Get docId and frequency of term
-           Pair<Integer, Integer> pair = docId_freq.get(i);
-           int docId = pair.getKey();
+           int docId = entry.getKey();
            /**
             * If docId is already associated to queryId, increment its value
             * Otherwise, create a new instance
@@ -167,7 +155,7 @@ public class QueryScoring {
                int value = numberOfTerms.get(new Key(queryId, docId)) + 1;
                numberOfTerms.put(new Key(queryId, docId), value);
            }
-           int frequency = pair.getValue();
+           int frequency = entry.getValue();
             /**
             * If docId is already associated to queryId, sum its frequency
             * Otherwise, create a new instance

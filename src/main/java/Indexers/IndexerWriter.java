@@ -4,13 +4,14 @@ import Tokenizers.CompleteTokenizer;
 import Tokenizers.SimpleTokenizer;
 import Utils.Filter;
 import Utils.Pair;
+import Utils.Values;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,9 +29,9 @@ import java.util.TreeMap;
 // Class Indexer that uses Stopwording filtering, Stemmer and create an Indexer.
 public class IndexerWriter {
     // List of terms (tokens)
-    private List<Pair<String, Integer>> terms;
+    private Map<Integer, List<String>> terms;
     // Indexer. The Indexer has a list of terms like [term, docId: frequency] 
-    private final Map<String, List<Pair<Integer, Integer>>> indexer;
+    private final Map<String, Values> indexer;
     // Type of tokenizer
     private final String tokenizeType;
     
@@ -41,7 +42,7 @@ public class IndexerWriter {
      * @param tokenizerType
      * @throws FileNotFoundException
      */
-    public IndexerWriter(List<Pair<String, Integer>> terms, File file, String tokenizerType) throws FileNotFoundException {
+    public IndexerWriter(Map<Integer, List<String>> terms, File file, String tokenizerType) throws FileNotFoundException {
         this.terms = terms;
         this.tokenizeType = tokenizerType;
         indexer = new TreeMap<>();
@@ -78,10 +79,10 @@ public class IndexerWriter {
         * If the term has only one pair, it appears in only one document.
         * The cycle finishes when the list has 10 terms.
         */
-        for (Map.Entry<String, List<Pair<Integer, Integer>>> entry : indexer.entrySet()) {
+        for (Map.Entry<String, Values> entry : indexer.entrySet()) {
             String word = entry.getKey();
-            List<Pair<Integer, Integer>> listFrequencies = entry.getValue();
-            if (listFrequencies.size() == 1)
+            Values listFrequencies = entry.getValue();
+            if (listFrequencies.getValues().size() == 1)
                 termsInOneDoc.add(word);
             if (termsInOneDoc.size() == 10)
                 break;
@@ -94,29 +95,25 @@ public class IndexerWriter {
      * @return list of terms
      */
     public List<Pair<String, Integer>> getTermsWithHigherFreq() {
-        // Get a list of pairs with <term, document's frequency>
-        List<Pair<String, Integer>> termsFreq = getTermsAndFreq();
-        // Use a Comparator to sort the list of pairs by document's frequency
-        Comparator<Pair<String, Integer>> comp = (Pair<String, Integer> a, Pair<String, Integer> b) -> {
-            String s1 = a.getKey();
-            int d1 = a.getValue();
-            String s2 = b.getKey();
-            int d2 = b.getValue();
-            int res;
-            if (d1 > d2 || (d1 == d2 && s1.compareTo(s2) > 0))
-                res = -1;
-            else
-                res = 1;
-            return res;
-        };
-        Collections.sort(termsFreq, comp);
+        List<Map.Entry<String,Integer>> entries = new ArrayList<>(getTermsAndFreq().entrySet());
+        Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                int res;
+                if (o1.getValue() > o2.getValue())
+                    res = -1;
+                else
+                    res = 1;
+                return res;
+            }
+        });
         /*
         * Get the ten first terms, sorted by document's frequency.
         * When the list has 10 terms, it finishes the cycle and returns.
         */
         List<Pair<String, Integer>> sortedTerms = new ArrayList<>();
         for (int i = 0; i < 10; i++)
-            sortedTerms.add(new Pair<>(termsFreq.get(i).getKey(),termsFreq.get(i).getValue()));
+            sortedTerms.add(new Pair<>(entries.get(i).getKey(),entries.get(i).getValue()));
         return sortedTerms;
     }
     
@@ -124,11 +121,11 @@ public class IndexerWriter {
      * Get of list of pairs with (term, document frequency)
      * @return list of (term, frequency)
      */
-    private List<Pair<String, Integer>> getTermsAndFreq() {
+    private Map<String, Integer> getTermsAndFreq() {
         // For each entry on Map, add the term and its document's frequency to a list
-        List<Pair<String, Integer>> termsFreq = new ArrayList<>();
-        for (Map.Entry<String, List<Pair<Integer, Integer>>> entry : indexer.entrySet()) {
-            termsFreq.add(new Pair<>(entry.getKey(), entry.getValue().size()));
+        Map<String, Integer> termsFreq = new HashMap<>();
+        for (Map.Entry<String, Values> entry : indexer.entrySet()) {
+            termsFreq.put(entry.getKey(), entry.getValue().getValues().size());
         }
         return termsFreq;
     }
@@ -137,32 +134,35 @@ public class IndexerWriter {
      * Index all words
      */
     private void indexWords() {
-        for (Pair<String, Integer> term_doc : terms) {
-            String term = term_doc.getKey();
-            int docId = term_doc.getValue();
+        for (Map.Entry<Integer, List<String>> doc_terms : terms.entrySet()) {
+            List<String> words = doc_terms.getValue();
+            int docId = doc_terms.getKey();
             /*
             * If the indexer hasn't the term yet, it's created a new instance.
             * If the indexer has the term and not the document, the pair <docId, frequency> is added to the list.
             * If the indexer has the term and the docId, it's incrementd in his frequency.
             */
-            if (indexer.keySet().contains(term)) {
-                List<Pair<Integer,Integer>> doc_freq = indexer.get(term);
-                boolean containsPair = false;
-                for (int i = 0; i < doc_freq.size(); i++) {
-                    if (doc_freq.get(i).getKey() == docId) {
-                        int value = doc_freq.get(i).getValue();
-                        doc_freq.set(i, new Pair<>(doc_freq.get(i).getKey(), value + 1));
-                        containsPair = true;
-                        break;
+            for (String word : words) {
+                if (indexer.keySet().contains(word)) {
+                    Values doc_freq = indexer.get(word);
+                    boolean containsPair = false;
+                    for (Map.Entry<Integer, Integer> entry : doc_freq.getValues().entrySet()) {
+                        if (entry.getKey() == docId) {
+                            int value = entry.getValue();
+                            doc_freq.addValue(entry.getKey(), value + 1);
+                            containsPair = true;
+                            break;
+                        }
                     }
+                    if (!containsPair) {
+                        doc_freq.addValue(docId, 1);
+                    }
+                indexer.put(word, doc_freq);
+                } else {
+                    Values doc_freq = new Values();
+                    doc_freq.addValue(docId, 1);
+                    indexer.put(word, doc_freq);
                 }
-                if (!containsPair) {
-                    doc_freq.add(new Pair<>(docId, 1));
-                }
-            indexer.put(term, doc_freq);
-            } else {
-                Pair<Integer, Integer> docId_freq = new Pair<>(docId, 1);
-                indexer.put(term, new ArrayList<>(Arrays.asList(docId_freq)));
             }
         }
     }
@@ -175,13 +175,14 @@ public class IndexerWriter {
     private void writeToFile(File file) throws FileNotFoundException {
         try (PrintWriter pw = new PrintWriter(file)) {
             // For each entry of map, writes an entry like: term, docId:frequency
-            for (Map.Entry<String, List<Pair<Integer, Integer>>> entry : indexer.entrySet()) {
+            for (Map.Entry<String, Values> entry : indexer.entrySet()) {
                 pw.print(entry.getKey() + ",");
-                List<Pair<Integer, Integer>> listFrequencies = entry.getValue();
-                for (int i = 0; i < listFrequencies.size(); i++) {
-                    int docId = listFrequencies.get(i).getKey();
-                    int freq = listFrequencies.get(i).getValue();
-                    if (i == listFrequencies.size() - 1)
+                Values listFrequencies = entry.getValue();
+                int i = 0;
+                for (Map.Entry<Integer, Integer> values : listFrequencies.getValues().entrySet()) {
+                    int docId = values.getKey();
+                    int freq = values.getValue();
+                    if (++i == listFrequencies.getValues().size() - 1)
                         pw.print(docId + ":" + freq + "\n");
                     else
                         pw.print(docId + ":" + freq + ",");

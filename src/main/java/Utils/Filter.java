@@ -3,7 +3,9 @@ package Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import org.tartarus.snowball.ext.englishStemmer;
@@ -57,10 +59,16 @@ public class Filter {
      * @param terms
      * @return filtered words
      */
-    public List<Pair<String, Integer>> stopwordsFiltering(List<Pair<String, Integer>> terms) {
-        return terms.stream()                                          // convert list to stream
-                .filter(term -> !stopWords.contains(term.getKey()))   // filter words that stopwords's list hasn't
-                .collect(Collectors.toList());                       // convert streams to List
+    public Map<Integer, List<String>> stopwordsFiltering(Map<Integer, List<String>> terms) {
+        Map<Integer, List<String>> result = new HashMap<>();
+        for (Map.Entry<Integer, List<String>> entry : terms.entrySet()) {
+            List<String> words = entry.getValue();
+            List<String> filter = words.stream()
+                    .filter(line -> !stopWords.contains(line))
+                    .collect(Collectors.toList());
+            result.put(entry.getKey(), filter);
+        }
+        return result;
     }
     
     /**
@@ -68,16 +76,18 @@ public class Filter {
      * @param terms
      * @return stemmed terms
      */
-    public List<Pair<String, Integer>> stemmingWords(List<Pair<String, Integer>> terms) {
+    public Map<Integer, List<String>> stemmingWords(Map<Integer, List<String>> terms) {
+        Map<Integer, List<String>> result = new HashMap<>();
         englishStemmer stemmer = new englishStemmer();
-        for (int i = 0; i < terms.size(); i++) {
-            String term = terms.get(i).getKey();
-            int docId = terms.get(i).getValue();
-            stemmer.setCurrent(term);
-            // If the term was stemmed, the terms list is updated.
-            if (stemmer.stem())
-                terms.set(i, new Pair<>(stemmer.getCurrent(), docId));
+        for (Map.Entry<Integer, List<String>> entry : terms.entrySet()) {
+            List<String> words = entry.getValue();
+            for (int i = 0; i < words.size(); i++) {
+                stemmer.setCurrent(words.get(i));
+                if (stemmer.stem())
+                    words.set(i, stemmer.getCurrent());
+            }
+            result.put(entry.getKey(), words);
         }
-        return terms;
+        return result;
     } 
 }

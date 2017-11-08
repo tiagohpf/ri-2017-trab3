@@ -1,6 +1,6 @@
 package Indexers;
 
-import Utils.Pair;
+import Utils.Values;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.TreeMap;
 // Class that loads an Indexer.
 public class IndexerReader {
     // Indexer. The Indexer has a list of terms like [term, docId: frequency] 
-    private Map<String, List<Pair<Integer, Integer>>> indexer;
+    private Map<String, Values> indexer;
     private static Scanner sc;
     // Type of Tokenizer in use
     private String tokenizerType;
@@ -42,7 +42,7 @@ public class IndexerReader {
      * Get Indexer
      * @return indexer 
      */
-    public Map<String, List<Pair<Integer, Integer>>> getIndexer() {
+    public Map<String, Values> getIndexer() {
         return new TreeMap<>(indexer);
     }
     
@@ -82,12 +82,12 @@ public class IndexerReader {
             // Slipt the term of his occurrences in the documents
             String []elements = line.split(",");
             String term = elements[0];
-            List<Pair<Integer, Integer>> documents = new ArrayList<>();
+            Values documents = new Values();
             for (int i = 1; i < elements.length; i++) {
                 String []doc = elements[i].split(":");
                 int docId = Integer.parseInt(doc[0]);
                 int frequency = Integer.parseInt(doc[1]);
-                documents.add(new Pair<>(docId, frequency));
+                documents.addValue(docId, frequency);
             }
             indexer.put(term, documents);
         }
