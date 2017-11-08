@@ -3,7 +3,6 @@ package Indexers;
 import Tokenizers.CompleteTokenizer;
 import Tokenizers.SimpleTokenizer;
 import Utils.Filter;
-import Utils.Pair;
 import Utils.Values;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -94,7 +94,7 @@ public class IndexerWriter {
      * Get the ten first terms with higher document frequency.
      * @return list of terms
      */
-    public List<Pair<String, Integer>> getTermsWithHigherFreq() {
+    public Map<String, Integer> getTermsWithHigherFreq() {
         List<Map.Entry<String,Integer>> entries = new ArrayList<>(getTermsAndFreq().entrySet());
         Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
             @Override
@@ -111,9 +111,9 @@ public class IndexerWriter {
         * Get the ten first terms, sorted by document's frequency.
         * When the list has 10 terms, it finishes the cycle and returns.
         */
-        List<Pair<String, Integer>> sortedTerms = new ArrayList<>();
+        Map<String, Integer> sortedTerms = new LinkedHashMap<>();
         for (int i = 0; i < 10; i++)
-            sortedTerms.add(new Pair<>(entries.get(i).getKey(),entries.get(i).getValue()));
+            sortedTerms.put(entries.get(i).getKey(),entries.get(i).getValue());
         return sortedTerms;
     }
     
