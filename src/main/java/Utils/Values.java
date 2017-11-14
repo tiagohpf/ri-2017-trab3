@@ -21,4 +21,8 @@ public class Values {
     public int getNumber(int id) {
         return values.get(id);
     }
+    
+    public void setValues(Map<Integer, Integer> values) {
+        this.values = values;
+    }
 }

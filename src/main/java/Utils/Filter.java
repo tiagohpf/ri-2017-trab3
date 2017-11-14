@@ -3,6 +3,7 @@ package Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,33 +25,28 @@ import org.tartarus.snowball.ext.englishStemmer;
  * Class that applys stopWording and stemming
  */
 public class Filter {
-    // List of stopwords
     private final List<String> stopWords;
     
     /**
      * Constructor
-     * @throws FileNotFoundException 
      */
-    public Filter() throws FileNotFoundException {
-        stopWords = loadStopwords();
+    public Filter() {
+        stopWords = new ArrayList<>();
     }
     
     /**
      * Read the file of stopwords and load them to a list
-     * @return stopWords
      * @throws FileNotFoundException 
      */
-    public List<String> loadStopwords() throws FileNotFoundException {
-        List<String> words = new ArrayList<>();
+    public void loadStopwords() throws FileNotFoundException {
         File file = new File ("stopwords.txt");
         Scanner sc = new Scanner(file);
         while (sc.hasNext()) {
             String word = sc.nextLine();
             // String.trim() to remove white spaces after text
             if (word.trim().length() > 0)
-                words.add(word.trim());
+                stopWords.add(word.trim());
         }
-        return words;
     }
     
     /**
@@ -82,9 +78,11 @@ public class Filter {
         for (Map.Entry<Integer, List<String>> entry : terms.entrySet()) {
             List<String> words = entry.getValue();
             for (int i = 0; i < words.size(); i++) {
+                String x = words.get(i);
                 stemmer.setCurrent(words.get(i));
-                if (stemmer.stem())
+                if (stemmer.stem()) {
                     words.set(i, stemmer.getCurrent());
+                }
             }
             result.put(entry.getKey(), words);
         }

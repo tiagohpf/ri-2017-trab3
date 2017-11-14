@@ -2,7 +2,6 @@ package Tokenizers;
 
 import Documents.Document;
 import Documents.XMLDocument;
-import Utils.Pair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +54,7 @@ public class CompleteTokenizer implements Tokenizer{
             else
                 content = document.getText();
             // Remove some special characters
-            content = content.replaceAll("[*+/:;'(),\"]", "");
+            content = content.replaceAll("[*+/:;'(),\"!?]", "");
             content = content.replaceAll("\n", " ");
             // Tokenize by white space
             String []text = content.split(" ");
