@@ -1,9 +1,14 @@
 import CorpusReader.CorpusReader;
 import Documents.Document;
-import Indexers.IndexerWriter;
+import Indexers.IndexerCreator;
+import Weights.IndexerWeight;
 import Parsers.Parser;
+import Parsers.QueryParser;
 import Parsers.XMLParser;
 import Tokenizers.CompleteTokenizer;
+import Utils.Filter;
+import Utils.Values;
+import Weights.QueryScoring;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -20,36 +25,63 @@ import java.util.Map;
  */
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
-        if (args.length == 3) {
+        if (args.length == 6) {
             File file = new File(args[0]);
-                if (!file.exists()) {
-                    System.err.println("ERROR: File not found");
-                    System.exit(1);
-                }
-                Parser parser = new Parser(new XMLParser());
-                CorpusReader reader = new CorpusReader();
-                // In case of filename is a directory
-                if (file.isDirectory())
-                    reader.setDocuments(parser.parseDir(file));
-                // In case of a filename is an only file
-                else
-                    reader.addDocument((Document) parser.parseFile(file));
-                List<Document> documents = reader.getDocuments();
-                // Indexer file need to have an unique name in actual directory
-                File indexerFile = new File(args[2]);
-                if (indexerFile.exists()) {
-                    System.err.println("ERROR: The file you want to create already exists!");
-                    System.exit(1);
-                }
-                CompleteTokenizer tokenizer = new CompleteTokenizer();
-                tokenizer.tokenize(documents);
-                Map<Integer, List<String>> terms = tokenizer.getTerms();
-                String tokenizerType = CompleteTokenizer.class.getName();
-                IndexerWriter indexer = new IndexerWriter(terms, indexerFile, tokenizerType);
+            if (!file.exists()) {
+                System.err.println("ERROR: Files to read not found!");
+                System.exit(1);
+            }
+            if (args[2].equals(args[0]) || args[4].equals(args[0]) || args[5].equals(args[0])) {
+                System.err.println("ERROR: The file you want to create was read before!");
+                System.exit(1);
+            }
+            Parser parser = new Parser(new XMLParser());
+            CorpusReader docsReader = new CorpusReader();
+            // In case of filename is a directory
+            if (file.isDirectory())
+                docsReader.setDocuments(parser.parseDir(file));
+            // In case of a filename is an only file
+            else
+                docsReader.addDocument((Document) parser.parseFile(file));
+            List<Document> documents = docsReader.getDocuments();
+            CompleteTokenizer docsTokenizer = new CompleteTokenizer();
+            docsTokenizer.tokenize(documents);
+            Map<Integer, List<String>> terms = docsTokenizer.getTerms();
+            Filter filter = new Filter();
+            filter.loadStopwords(new File(args[1]));
+            terms = filter.stopwordsFiltering(terms);
+            terms = filter.stemmingWords(terms);
+            IndexerCreator docCreator = new IndexerCreator(terms);
+            docCreator.createIndexer();
+            IndexerWeight weighter = new IndexerWeight(terms);
+            Map<String, Values> docsIndexer = docCreator.getIndexer();
+            weighter.calculateTermFreq(docsIndexer);
+            weighter.writeToFile(new File(args[4]));
+
+            parser = new Parser(new QueryParser());
+            File queriesFile = new File(args[2]);
+            if (!queriesFile.exists()) {
+                System.err.println("ERROR: Files of queries not found!");
+                System.exit(1);
+            }
+            CorpusReader queriesReader = new CorpusReader();
+            queriesReader.setDocuments((List<Document>)parser.parseFile(queriesFile));
+            List<Document> queriesDocs = queriesReader.getDocuments();
+            CompleteTokenizer queriesTokenizer = new CompleteTokenizer();
+            queriesTokenizer.tokenize(queriesDocs);
+            Map<Integer, List<String>> queries = queriesTokenizer.getTerms();
+            queries = filter.stopwordsFiltering(queries);
+            queries = filter.stemmingWords(queries);
+            IndexerCreator queryCreator = new IndexerCreator(queries);
+            queryCreator.createIndexer();
+            Map<String, Values> queriesIndexer = queryCreator.getIndexer();
+            QueryScoring scoring = new QueryScoring(queriesIndexer, queries, documents.size());
+            scoring.calculateInverseDocFreq(queriesIndexer, docsIndexer);
+            scoring.calculateDocScorer(docsIndexer);
+            scoring.writeToFile(new File(args[5]));
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
-            System.out.println("USAGE: <file or dir> <file with queries> <indexer file>");
-            System.exit(1);
-        }       
+            System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");
+        }
     }
 }

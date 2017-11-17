@@ -23,7 +23,7 @@ import java.util.TreeMap;
 // Class that loads an Indexer.
 public class IndexerReader {
     // Indexer. The Indexer has a list of terms like [term, docId: frequency] 
-    private Map<String, Values> indexer;
+    private final Map<String, Values> indexer;
     private static Scanner sc;
     // Type of Tokenizer in use
     private String tokenizerType;
@@ -91,13 +91,5 @@ public class IndexerReader {
             }
             indexer.put(term, documents);
         }
-    }
-    
-    /**
-     * Get type of Tokenizer
-     * @return Tokenizer
-     */
-    public String getTokenizerType() {
-        return tokenizerType;
     }
 }

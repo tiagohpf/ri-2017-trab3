@@ -29,17 +29,22 @@ public class Filter {
     
     /**
      * Constructor
+     * @throws java.io.FileNotFoundException
      */
-    public Filter() {
+    public Filter() throws FileNotFoundException {
         stopWords = new ArrayList<>();
     }
     
     /**
      * Read the file of stopwords and load them to a list
+     * @param file
      * @throws FileNotFoundException 
      */
-    public void loadStopwords() throws FileNotFoundException {
-        File file = new File ("stopwords.txt");
+    public void loadStopwords(File file) throws FileNotFoundException {
+        if (!file.exists()) {
+            System.err.println("ERROR: File of stopwords not found!");
+            System.exit(1);
+        }
         Scanner sc = new Scanner(file);
         while (sc.hasNext()) {
             String word = sc.nextLine();
@@ -70,7 +75,7 @@ public class Filter {
     /**
      * Stemming terms
      * @param terms
-     * @return stemmed terms
+     * @return terms
      */
     public Map<Integer, List<String>> stemmingWords(Map<Integer, List<String>> terms) {
         Map<Integer, List<String>> result = new HashMap<>();

@@ -22,7 +22,7 @@ import java.util.Map;
 * Class that tokenizes a file or a directory, given special attention to certain characters.
 */
 public class CompleteTokenizer implements Tokenizer{
-    private Map<Integer, List<String>> terms;
+    private final Map<Integer, List<String>> terms;
     
     /**
      * Constructor
@@ -111,5 +111,4 @@ public class CompleteTokenizer implements Tokenizer{
             terms.put(id, words);
         }
     }
-    
 }
