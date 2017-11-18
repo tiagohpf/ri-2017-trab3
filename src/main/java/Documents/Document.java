@@ -19,6 +19,14 @@ public abstract class Document {
     public Document() { }
     
     /**
+     * Constructor. A Document's object uses an id
+     * @param id
+     */
+    public Document(int id) {
+        this.id = id;
+    }
+    
+    /**
      * Constructor. A Document's object uses an id and a text
      * @param id
      * @param text

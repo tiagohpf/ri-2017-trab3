@@ -1,6 +1,7 @@
 import CorpusReader.CorpusReader;
 import Documents.Document;
 import Indexers.IndexerCreator;
+import Parsers.GSParser;
 import Weights.IndexerWeight;
 import Parsers.Parser;
 import Parsers.QueryParser;
@@ -58,12 +59,12 @@ public class Main {
             weighter.calculateTermFreq(docsIndexer);
             weighter.writeToFile(new File(args[4]));
 
-            parser = new Parser(new QueryParser());
             File queriesFile = new File(args[2]);
             if (!queriesFile.exists()) {
                 System.err.println("ERROR: Files of queries not found!");
                 System.exit(1);
             }
+            parser = new Parser(new QueryParser());
             CorpusReader queriesReader = new CorpusReader();
             queriesReader.setDocuments((List<Document>)parser.parseFile(queriesFile));
             List<Document> queriesDocs = queriesReader.getDocuments();
@@ -79,6 +80,21 @@ public class Main {
             scoring.calculateInverseDocFreq(queriesIndexer, docsIndexer);
             scoring.calculateDocScorer(docsIndexer);
             scoring.writeToFile(new File(args[5]));
+            
+            File gsFile = new File(args[3]);
+            if (!gsFile.exists()) {
+                System.err.println("ERROR: File of Gold Standard not found!");
+                System.exit(1);
+            }
+            parser = new Parser(new GSParser());
+            CorpusReader gsReader = new CorpusReader();
+            // In case of filename is a directory
+            if (gsFile.isDirectory())
+                gsReader.setDocuments(parser.parseDir(gsFile));
+            // In case of a filename is an only file
+            else
+                gsReader.addDocument((Document) parser.parseFile(gsFile));
+            List<Document> gsDocs = gsReader.getDocuments();
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");
