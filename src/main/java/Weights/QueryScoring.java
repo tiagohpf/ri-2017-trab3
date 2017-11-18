@@ -155,4 +155,8 @@ public class QueryScoring {
             System.exit(1);
         }
     }
+   
+   public Map<Key, Double> getQueryScorer() {
+       return docScorer;
+   }
 }

@@ -1,6 +1,8 @@
 import CorpusReader.CorpusReader;
 import Documents.Document;
+import Documents.GSDocument;
 import Indexers.IndexerCreator;
+import Metrics.MetricsCalculator;
 import Parsers.GSParser;
 import Weights.IndexerWeight;
 import Parsers.Parser;
@@ -8,6 +10,7 @@ import Parsers.QueryParser;
 import Parsers.XMLParser;
 import Tokenizers.CompleteTokenizer;
 import Utils.Filter;
+import Utils.Key;
 import Utils.Values;
 import Weights.QueryScoring;
 import java.io.File;
@@ -80,6 +83,7 @@ public class Main {
             scoring.calculateInverseDocFreq(queriesIndexer, docsIndexer);
             scoring.calculateDocScorer(docsIndexer);
             scoring.writeToFile(new File(args[5]));
+            Map<Key, Double> scorer = scoring.getQueryScorer();
             
             File gsFile = new File(args[3]);
             if (!gsFile.exists()) {
@@ -87,14 +91,8 @@ public class Main {
                 System.exit(1);
             }
             parser = new Parser(new GSParser());
-            CorpusReader gsReader = new CorpusReader();
-            // In case of filename is a directory
-            if (gsFile.isDirectory())
-                gsReader.setDocuments(parser.parseDir(gsFile));
-            // In case of a filename is an only file
-            else
-                gsReader.addDocument((Document) parser.parseFile(gsFile));
-            List<Document> gsDocs = gsReader.getDocuments();
+            GSDocument gsDoc = (GSDocument) parser.parseFile(gsFile);
+            MetricsCalculator metrics = new MetricsCalculator(queries, scorer, gsDoc);
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");

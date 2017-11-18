@@ -20,6 +20,10 @@ public class GSDocument extends Document{
         this.relevances = relevances;
     }
     
+    public Map<Key, Integer> getRelevances() {
+        return relevances;
+    }
+    
     public void setRelevances(Map<Key, Integer> relevances) {
         this.relevances = relevances;
     }
