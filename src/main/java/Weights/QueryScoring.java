@@ -31,7 +31,7 @@ public class QueryScoring {
     private final int numberOfDocs;
     private final Map<Integer, List<String>> queries;
     private final Map<Integer, Double> queryLength;
-    private Map<Key, Double> docScorer;
+    private Map<Integer, Values> docScorer;
     
     public QueryScoring(Map<String, Values> indexer, Map<Integer, List<String>> queries, int numberOfDocs) {
         this.indexer = indexer;
@@ -93,61 +93,37 @@ public class QueryScoring {
                 int queryId = queryId_score.getKey();
                 if (docIndexer.get(word) != null) {
                     Values docValues = docIndexer.get(word);
+                    Map<Integer, Double> docsScores = new HashMap<>();
                     for (Map.Entry<Integer, Double> docId_score : docValues.getValues().entrySet()) {
                         int docId = docId_score.getKey();
                         double score = queryId_score.getValue() * docId_score.getValue();
-                        Key key = new Key(queryId, docId);
-                        if (docScorer.get(key) != null)
-                           score += docScorer.get(key);
-                        docScorer.put(key, score);                    }
+                        Values inputValues = docScorer.get(queryId);
+                        if (inputValues != null) {
+                            if(inputValues.getValues().get(docId) != null)
+                                score += inputValues.getValues().get(docId);
+                            inputValues.addValue(docId, score);
+                            docScorer.put(queryId, inputValues);
+                        } else {
+                            Map<Integer, Double> newValue = new HashMap<>();
+                            newValue.put(docId, score);
+                            docScorer.put(queryId, new Values(newValue));
+                        }
+                    }
                 }
             }
         }
     }
     
-    private void sortDocScorer() {
-        List<Map.Entry<Key,Double>> entries = new ArrayList<>(docScorer.entrySet());
-        // Comparator to sort by query_id
-        Collections.sort(entries, new Comparator<Map.Entry<Key,Double>>() {
-            @Override
-            public int compare(Map.Entry<Key, Double> o1, Map.Entry<Key, Double> o2) {
-                int res;
-                int id1 = o1.getKey().hashCode();
-                int id2 = o2.getKey().hashCode();
-                if (id1 < id2)
-                    res = -1;
-                else
-                    res = 1;
-                return res;
-            }
-        });
-        // Comparator to sort by doc_score
-        Collections.sort(entries, new Comparator<Map.Entry<Key,Double>>() {
-            @Override
-            public int compare(Map.Entry<Key, Double> o1, Map.Entry<Key, Double> o2) {
-                int res = 0;
-                if (o1.getKey().getFirstValue() == o2.getKey().getFirstValue() && o1.getValue() > o2.getValue())
-                    res = -1;
-                else if (o1.getKey().getFirstValue() == o2.getKey().getFirstValue() && o1.getValue() < o2.getValue())
-                    res = 1;
-                return res;
-            }
-        });
-        // Create new map with sorted results
-        docScorer = new LinkedHashMap<>();
-        for (Map.Entry<Key, Double> entry: entries)
-            docScorer.put(new Key(entry.getKey().getFirstValue(), entry.getKey().getSecondValue()), entry.getValue());
-    }
-    
    public void writeToFile(File file) {
-        sortDocScorer();
+        docScorer = orderScores();
         PrintWriter pw;
         try {
             pw = new PrintWriter(file);
             pw.write(String.format("%-10s %-10s %-10s\n", "query_id", "doc_id", "doc_score"));
-            for (Map.Entry<Key, Double> score : docScorer.entrySet()) {
-                pw.write(String.format("%-10s %-10d %-10.5f\n",
-                        score.getKey().getFirstValue(), score.getKey().getSecondValue(), score.getValue()));
+            for (Map.Entry<Integer, Values> score : docScorer.entrySet()) {
+                Values values = score.getValue();
+                for (Map.Entry<Integer, Double> value : values.getValues().entrySet())
+                    pw.write(String.format("%-10s %-10d %-10.5f\n",score.getKey(), value.getKey(), value.getValue()));
             }
             pw.close();
         } catch (FileNotFoundException ex) {
@@ -156,7 +132,14 @@ public class QueryScoring {
         }
     }
    
-   public Map<Key, Double> getQueryScorer() {
+    public Map<Integer, Values> getQueryScorer() {
        return docScorer;
-   }
+    }
+    
+    private Map<Integer, Values> orderScores() {
+        Map<Integer, Values> result = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Values> query : docScorer.entrySet())
+            result.put(query.getKey(), new Values(query.getValue().sortValues()));
+        return result;
+    }
 }

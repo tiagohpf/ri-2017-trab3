@@ -83,7 +83,7 @@ public class Main {
             scoring.calculateInverseDocFreq(queriesIndexer, docsIndexer);
             scoring.calculateDocScorer(docsIndexer);
             scoring.writeToFile(new File(args[5]));
-            Map<Key, Double> scorer = scoring.getQueryScorer();
+            Map<Integer, Values> scorer = scoring.getQueryScorer();
             
             File gsFile = new File(args[3]);
             if (!gsFile.exists()) {
