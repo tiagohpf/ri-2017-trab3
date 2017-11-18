@@ -42,7 +42,7 @@ public class Values {
                 -> o1.getValue().compareTo(o2.getValue()) * -1);
         Collections.sort(entries, (Map.Entry<Integer, Double> o1, Map.Entry<Integer, Double> o2) -> {
             int res = 0;
-            if (o1.getValue() == o2.getValue())
+            if (Objects.equals(o1.getValue(), o2.getValue()))
                 res = o1.getKey().compareTo(o2.getKey());
             return res;
         });
