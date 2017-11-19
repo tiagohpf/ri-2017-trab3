@@ -37,6 +37,7 @@ public class GSParser implements Strategy<Document>{
                     values.put(docId, (double)relevance);
                 }
             }
+            relevances.put(actualId, new Values(values));
             return new GSDocument(1, relevances);
         } catch (FileNotFoundException ex) {
             System.err.println("ERROR: File of Golden Standard not found!");
