@@ -10,7 +10,6 @@ import Parsers.QueryParser;
 import Parsers.XMLParser;
 import Tokenizers.CompleteTokenizer;
 import Utils.Filter;
-import Utils.Key;
 import Utils.Values;
 import Weights.QueryScoring;
 import java.io.File;
