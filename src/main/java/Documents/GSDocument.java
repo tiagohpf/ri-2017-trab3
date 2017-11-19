@@ -1,11 +1,11 @@
 package Documents;
 
-import Utils.Key;
+import Utils.Values;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GSDocument extends Document{
-    private Map<Key, Integer> relevances;
+    private Map<Integer, Values> relevances;
     /**
      * Class that extends Document abstract class
      * Class that represents Gold Standard Files
@@ -15,16 +15,16 @@ public class GSDocument extends Document{
         relevances = new HashMap<>();
     }
     
-    public GSDocument(int id, Map<Key, Integer> relevances) {
+    public GSDocument(int id, Map<Integer, Values> relevances) {
         super(id);
         this.relevances = relevances;
     }
     
-    public Map<Key, Integer> getRelevances() {
+    public Map<Integer, Values> getRelevances() {
         return relevances;
     }
     
-    public void setRelevances(Map<Key, Integer> relevances) {
+    public void setRelevances(Map<Integer, Values> relevances) {
         this.relevances = relevances;
     }
     
@@ -35,9 +35,10 @@ public class GSDocument extends Document{
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Key, Integer> line : relevances.entrySet()) {
-            sb.append(String.format("{%d, %d, %d}", 
-                    line.getKey().getFirstValue(), line.getKey().getSecondValue(), line.getValue()));
+        for (Map.Entry<Integer, Values> line : relevances.entrySet()) {
+            Values values = line.getValue();
+            for (Map.Entry<Integer, Double> value : values.getValues().entrySet())
+                sb.append(String.format("{%d, %d, %d}", line.getKey(), value.getKey(), value.getValue().intValue()));
         }
         return sb.toString();
     }

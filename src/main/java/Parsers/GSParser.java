@@ -3,6 +3,7 @@ package Parsers;
 import Documents.Document;
 import Documents.GSDocument;
 import Utils.Key;
+import Utils.Values;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -17,16 +18,27 @@ public class GSParser implements Strategy<Document>{
 
     @Override
     public Document parseFile(File file) {
-        Map<Key, Integer> values = new HashMap<>();
+        Map<Integer, Values> relevances = new HashMap<>();
         try {
             sc = new Scanner(file);
+            int actualId = 1;
+            Map<Integer, Double> values = new HashMap<>();
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 String []data = line.split("\\s+");
-                values.put(new Key(Integer.parseInt(data[0]), 
-                        Integer.parseInt(data[1])), Integer.parseInt(data[2]));
+                int queryId = Integer.parseInt(data[0]);
+                int docId = Integer.parseInt(data[1]);
+                int relevance = Integer.parseInt(data[2]);
+                if (relevance >= 1 && relevance <= 3) {
+                    if (queryId != actualId) {
+                        relevances.put(actualId, new Values(values));
+                        values = new HashMap<>();
+                        actualId++;
+                    }
+                    values.put(docId, (double)relevance);
+                }
             }
-            return new GSDocument(1, values);
+            return new GSDocument(1, relevances);
         } catch (FileNotFoundException ex) {
             System.err.println("ERROR: File of Golden Standard not found!");
             System.exit(1);

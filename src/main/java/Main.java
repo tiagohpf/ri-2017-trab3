@@ -92,7 +92,9 @@ public class Main {
             }
             parser = new Parser(new GSParser());
             GSDocument gsDoc = (GSDocument) parser.parseFile(gsFile);
-            MetricsCalculator metrics = new MetricsCalculator(queries, scorer, gsDoc);
+            MetricsCalculator metrics = new MetricsCalculator(scorer, gsDoc);
+            System.out.format("Precision: %.3f\n", metrics.getMeanPrecision());
+            System.out.format("Recall: %.3f\n", metrics.getMeanRecall());
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");
