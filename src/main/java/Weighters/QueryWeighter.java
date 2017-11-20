@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * IR, October 2017
+ * IR, November 2017
  *
- * Assignment 2 
+ * Assignment 3 
  *
  * @author Tiago Faria, 73714, tiagohpf@ua.pt
  * @author David dos Santos Ferreira, 72219, davidsantosferreira@ua.pt
@@ -23,86 +23,102 @@ import java.util.Set;
 
 // Class that scores the queries
 public class QueryWeighter {
+    // Indexer with queries
     private final Map<String, Values> indexer;
-    private final int numberOfDocs;
+    // Number of Documents. Used in idf
+    private final int numberDocuments;
     private final Map<Integer, List<String>> queries;
+    // Lengths of queries. Values used in normalization
     private final Map<Integer, Double> queryLength;
-    private Map<Integer, Values> docScorer;
+    // Indexer with the scores
+    private Map<Integer, Values> scorer;
     
-    public QueryWeighter(Map<String, Values> indexer, Map<Integer, List<String>> queries, int numberOfDocs) {
+    /**
+     * Constructor
+     * @param indexer
+     * @param queries
+     * @param numberDocuments 
+     */
+    public QueryWeighter(Map<String, Values> indexer, Map<Integer, List<String>> queries, int numberDocuments) {
         this.indexer = indexer;
         this.queries = queries;
-        this.numberOfDocs = numberOfDocs;
+        this.numberDocuments = numberDocuments;
         queryLength = new HashMap<>();
-        docScorer = new HashMap<>();
+        scorer = new HashMap<>();
     }
     
-    public void calculateInverseDocFreq(Map<String, Values> indexerQueries, Map<String, Values> indexerDocs) {
-        for (Map.Entry<String, Values> term : indexerQueries.entrySet()) {
+       
+    /**
+     * Get the indexer with scores
+     * @return scorer 
+     */
+    public Map<Integer, Values> getQueryScorer() {
+       return scorer;
+    }
+    
+    /**
+     * Calculate idf
+     * All the documents of the indexer of queries are updated do the idf documents
+     * @param queryIndexer
+     * @param documentIndexer 
+     */
+    public void calculateInverseDocFreq(Map<String, Values> queryIndexer, Map<String, Values> documentIndexer) {
+        for (Map.Entry<String, Values> term : queryIndexer.entrySet()) {
             String termId = term.getKey();
-            Map<Integer, Double> values = term.getValue().getValues();
-            for (Map.Entry<Integer, Double> doc_freq : values.entrySet()) {
+            Map<Integer, Double> termQueries = term.getValue().getValues();
+            for (Map.Entry<Integer, Double> doc_freq : termQueries.entrySet()) {
                 int docId = doc_freq.getKey();
                 double idf = 0;
-                if (indexerDocs.get(termId) != null)
-                    idf = doc_freq.getValue() * Math.log10(numberOfDocs / indexerDocs.get(termId).getValues().size());
-                values.put(docId, idf);
+                // If the query indexer has the term, get its value and update it with idf
+                if (documentIndexer.get(termId) != null)
+                    idf = doc_freq.getValue() * Math.log10(numberDocuments / documentIndexer.get(termId).getValues().size());
+                termQueries.put(docId, idf);
             }
-            indexer.put(termId, new Values(values));
+            // Put the idf in the query indexer
+            indexer.put(termId, new Values(termQueries));
         }
         calculateQueryLength();
         normalizeQueries();
     }
     
-    private void calculateQueryLength() {
-        for (Map.Entry<Integer, List<String>> document : queries.entrySet()) {
-            int docId = document.getKey();
-            double sum = 0;
-            List<String> words = document.getValue();
-            Set<String> set = new HashSet<>(words);
-            for (String word : set) {
-                Values values = indexer.get(word);
-                sum += Math.pow(values.getValues().get(docId), 2);
-            }
-            queryLength.put(docId, Math.sqrt(sum));
-        }
-    }
-    
-    private void normalizeQueries() {
-       for (Map.Entry<String, Values> term : indexer.entrySet()) {
-            Map<Integer, Double> values = term.getValue().getValues();
-            for (Map.Entry<Integer, Double> query_weight : values.entrySet()) {
-                int queryId = query_weight.getKey();
-                double length = queryLength.get(queryId);
-                double normalization = query_weight.getValue() / length;
-                values.put(queryId, normalization);
-            }
-            indexer.put(term.getKey(), new Values(values));
-        }
-    }
-    
-    public void calculateDocScorer(Map<String, Values> docIndexer) {
+    /**
+     * Calculate score of a document.
+     * For each term present in a certain query, multiply the weight of query and document
+     * After that, sum all multiplications and get the final score
+     * @param documentIndexer 
+     */
+    public void calculateDocScorer(Map<String, Values> documentIndexer) {
+        // Get the term
         for (Map.Entry<String, Values> term : indexer.entrySet()) {
-            String word = term.getKey();
+            String termId = term.getKey();
             Values queryValues = term.getValue();
+            // Get the id and weight of the queries that the term appears
             for (Map.Entry<Integer, Double> queryId_score : queryValues.getValues().entrySet()) {
                 int queryId = queryId_score.getKey();
-                if (docIndexer.get(word) != null) {
-                    Values docValues = docIndexer.get(word);
-                    Map<Integer, Double> docsScores = new HashMap<>();
+                // Check if term appears on indexer of documents
+                if (documentIndexer.get(termId) != null) {
+                    Values docValues = documentIndexer.get(termId);
+                    // Get the id and weight of the documents that the term appears
                     for (Map.Entry<Integer, Double> docId_score : docValues.getValues().entrySet()) {
                         int docId = docId_score.getKey();
+                        // Update the score
                         double score = queryId_score.getValue() * docId_score.getValue();
-                        Values inputValues = docScorer.get(queryId);
+                        Values inputValues = scorer.get(queryId);
+                        /**
+                         * If theres is already an instance of the score of the pair (query, document), update
+                         * Otherwise, create a new instance
+                         */
                         if (inputValues != null) {
                             if(inputValues.getValues().get(docId) != null)
                                 score += inputValues.getValues().get(docId);
+                            // Update the score sum the weight of another term
                             inputValues.addValue(docId, score);
-                            docScorer.put(queryId, inputValues);
+                            scorer.put(queryId, inputValues);
                         } else {
                             Map<Integer, Double> newValue = new HashMap<>();
+                            // Create a new score for the pair (query, document)
                             newValue.put(docId, score);
-                            docScorer.put(queryId, new Values(newValue));
+                            scorer.put(queryId, new Values(newValue));
                         }
                     }
                 }
@@ -110,13 +126,17 @@ public class QueryWeighter {
         }
     }
     
-   public void writeToFile(File file) {
-        docScorer = orderScores();
+    /**
+     * Write the sorted results in file
+     * @param file 
+     */
+    public void writeToFile(File file) {
+        scorer = sortScores();
         PrintWriter pw;
         try {
             pw = new PrintWriter(file);
             pw.write(String.format("%-10s %-10s %-10s\n", "query_id", "doc_id", "doc_score"));
-            for (Map.Entry<Integer, Values> score : docScorer.entrySet()) {
+            for (Map.Entry<Integer, Values> score : scorer.entrySet()) {
                 Values values = score.getValue();
                 for (Map.Entry<Integer, Double> value : values.getValues().entrySet())
                     pw.write(String.format("%-10s %-10d %-10.5f\n",score.getKey(), value.getKey(), value.getValue()));
@@ -127,14 +147,49 @@ public class QueryWeighter {
             System.exit(1);
         }
     }
-   
-    public Map<Integer, Values> getQueryScorer() {
-       return docScorer;
+    
+    /**
+     * Calculate the query length
+     * Sum all the squared idf's documents and apply them the square root 
+     */
+    private void calculateQueryLength() {
+        for (Map.Entry<Integer, List<String>> query : queries.entrySet()) {
+            int queryId = query.getKey();
+            double sum = 0;
+            // Set to don't repeat the terms and duplicate the documents
+            Set<String> terms = new HashSet<>(query.getValue());
+            for (String word : terms) {
+                Values values = indexer.get(word);
+                sum += Math.pow(values.getValues().get(queryId), 2);
+            }
+            queryLength.put(queryId, Math.sqrt(sum));
+        }
     }
     
-    private Map<Integer, Values> orderScores() {
+    /**
+     * Normalize the idf's documents
+     * For eache query, divide idf value with the query length
+    */
+    private void normalizeQueries() {
+       for (Map.Entry<String, Values> term : indexer.entrySet()) {
+            Map<Integer, Double> documents = term.getValue().getValues();
+            for (Map.Entry<Integer, Double> query_weight : documents.entrySet()) {
+                int queryId = query_weight.getKey();
+                double length = queryLength.get(queryId);
+                double normalization = query_weight.getValue() / length;
+                documents.put(queryId, normalization);
+            }
+            indexer.put(term.getKey(), new Values(documents));
+        }
+    }
+    
+    /**
+     * Sort the results
+     * @return sorted scores
+     */
+    private Map<Integer, Values> sortScores() {
         Map<Integer, Values> result = new LinkedHashMap<>();
-        for (Map.Entry<Integer, Values> query : docScorer.entrySet())
+        for (Map.Entry<Integer, Values> query : scorer.entrySet())
             result.put(query.getKey(), new Values(query.getValue().sortValues()));
         return result;
     }

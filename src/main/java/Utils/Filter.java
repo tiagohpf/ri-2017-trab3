@@ -3,7 +3,6 @@ package Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,9 +11,9 @@ import java.util.stream.Collectors;
 import org.tartarus.snowball.ext.englishStemmer;
 
 /**
- * IR, October 2017
+ * IR, November 2017
  *
- * Assignment 2 
+ * Assignment 3 
  *
  * @author Tiago Faria, 73714, tiagohpf@ua.pt
  * @author David dos Santos Ferreira, 72219, davidsantosferreira@ua.pt

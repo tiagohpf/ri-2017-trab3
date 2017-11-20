@@ -117,7 +117,7 @@ public class Main {
             Map<Integer, Values> queryScorer = queryWeighter.getQueryScorer();
             // Calculate evaluation and efficiency metrics
             MetricsCalculator metrics = new MetricsCalculator(queryScorer, gsDocument);
-            System.out.format("Precision: %.3f\n", metrics.getAvgPrecision());
+            System.out.format("Precision: %.3f\n", metrics.getMeanPrecision());
             System.out.format("Recall: %.3f\n", metrics.getMeanRecall());
             System.out.format("F-Measure: %.3f\n", metrics.getMeanFMeasure());
             System.out.format("Mean Average Precision: %.3f\n", metrics.getMeanAveragePrecision());

@@ -16,7 +16,7 @@ import java.util.Map;
  * 
  */
 
-// Class Indexer that create an Indexer.
+// Class Indexer that create an Indexer
 public class IndexerCreator {
     // List of terms (words)
     private final Map<Integer, List<String>> terms;
