@@ -61,6 +61,7 @@ public class Main {
             weighter.calculateTermFreq(docsIndexer);
             weighter.writeToFile(new File(args[4]));
 
+            long startTime = System.currentTimeMillis();
             File queriesFile = new File(args[2]);
             if (!queriesFile.exists()) {
                 System.err.println("ERROR: Files of queries not found!");
@@ -82,6 +83,7 @@ public class Main {
             scoring.calculateInverseDocFreq(queriesIndexer, docsIndexer);
             scoring.calculateDocScorer(docsIndexer);
             scoring.writeToFile(new File(args[5]));
+            long endTime = System.currentTimeMillis();
             Map<Integer, Values> scorer = scoring.getQueryScorer();
             
             File gsFile = new File(args[3]);
@@ -92,8 +94,17 @@ public class Main {
             parser = new Parser(new GSParser());
             GSDocument gsDoc = (GSDocument) parser.parseFile(gsFile);
             MetricsCalculator metrics = new MetricsCalculator(scorer, gsDoc);
-            System.out.format("Precision: %.3f\n", metrics.getMeanPrecision());
+            System.out.format("Precision: %.3f\n", metrics.getAvgPrecision());
             System.out.format("Recall: %.3f\n", metrics.getMeanRecall());
+            System.out.format("F-Measure: %.3f\n", metrics.getMeanFMeasure());
+            System.out.format("Mean Average Precision: %.3f\n", metrics.getMeanAveragePrecision());
+            System.out.format("Mean Precision at Rank 10: %.3f\n", metrics.getMeanPrecisionAtRank10());
+            System.out.format("Mean Reciprocal Rank: %.3f\n", metrics.getMeanReciprocalRank());
+            double latency = (double) (endTime - startTime) / queries.size();
+            latency = latency / 1000;
+            System.out.format("Mean Latency: %.3f second/query\n", latency);
+            double queryThroughput = 1 / latency;
+            System.out.format("Query Throughput: %d queries/second", Math.round(queryThroughput));
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");
