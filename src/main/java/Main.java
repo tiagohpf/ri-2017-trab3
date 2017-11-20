@@ -1,7 +1,7 @@
 import CorpusReader.CorpusReader;
 import Documents.Document;
 import Documents.GSDocument;
-import Indexer.IndexerCreator;
+import Indexers.IndexerCreator;
 import Metrics.MetricsCalculator;
 import Parsers.GSParser;
 import Weighters.DocumentWeighter;
@@ -99,7 +99,7 @@ public class Main {
             // Calculate idf
             queryWeighter.calculateInverseDocFreq(queryIndexer, documentIndexer);
             // Calculate score of document
-            queryWeighter.calculateDocScorer(documentIndexer);
+            queryWeighter.calculateDocumentScore(documentIndexer);
             // Write results to file
             queryWeighter.writeToFile(new File(args[5]));
             // EndTime of processing queries
@@ -125,7 +125,7 @@ public class Main {
             System.out.format("Mean Reciprocal Rank: %.3f\n", metrics.getMeanReciprocalRank());
             double latency = ((double) (endTime - startTime) / queries.size()) / 1000;
             System.out.format("Mean Latency: %.3f second/query\n", latency);
-            System.out.format("Query Throughput: %d queries/second", Math.round(1 / latency));
+            System.out.format("Query Throughput: %d queries/second\n", Math.round(1 / latency));
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");

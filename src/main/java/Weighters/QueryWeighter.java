@@ -87,7 +87,7 @@ public class QueryWeighter {
      * After that, sum all multiplications and get the final score
      * @param documentIndexer 
      */
-    public void calculateDocScorer(Map<String, Values> documentIndexer) {
+    public void calculateDocumentScore(Map<String, Values> documentIndexer) {
         // Get the term
         for (Map.Entry<String, Values> term : indexer.entrySet()) {
             String termId = term.getKey();

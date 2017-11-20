@@ -24,12 +24,12 @@ import java.util.Set;
  * 
  */
 
-// Class that scores the termDocuments
+// Class that scores the documents
 public class DocumentWeighter {
-    // Indexer with the scores of termDocuments
+    // Indexer with the scores of documents
     private Map<String, Values> scorer;
     private final Map<Integer, List<String>> documents;
-    // Lengths of termDocuments. Values used in normalization
+    // Lengths of documents. Values used in normalization
     private final Map<Integer, Double> documentLength;
     
     /**
@@ -44,7 +44,7 @@ public class DocumentWeighter {
     
     /**
      * Calculate tf
-     * All the frequency termDocuments are converted to tf
+     * All the frequency documents are converted to tf
      * @param indexer 
     */
     public void calculateTermFreq(Map<String, Values> indexer) {
@@ -90,7 +90,7 @@ public class DocumentWeighter {
     
     /**
      * Calculate the document length
-     * Sum all the squared tf's termDocuments and apply them the square root 
+     * Sum all the squared tf's documents and apply them the square root 
     */
     private void calculateDocsLength() {
         for (Map.Entry<Integer, List<String>> document : documents.entrySet()) {
@@ -107,8 +107,8 @@ public class DocumentWeighter {
     }
     
     /**
-     * Normalize the tf's entyDocuments
- For eache document, divide tf value with the document's length
+     * Normalize the tf's documents
+     * For eache document, divide tf value with the document's length
      */
     private void normalizeDocuments() {
        for (Map.Entry<String, Values> term : scorer.entrySet()) {
@@ -150,7 +150,7 @@ public class DocumentWeighter {
      */
     private Map<Integer, Double> sortDocuments(Map<Integer, Double> values) {
         List<Map.Entry<Integer, Double>> valuesDocuments = new ArrayList<>(values.entrySet());
-        // Comparator to sort termDocuments by their id
+        // Comparator to sort documents by their id
         Collections.sort(valuesDocuments, 
                 (Map.Entry<Integer, Double> o1, Map.Entry<Integer, Double> o2) -> o1.getKey().compareTo(o2.getKey()));
         // Create new map with sorted results

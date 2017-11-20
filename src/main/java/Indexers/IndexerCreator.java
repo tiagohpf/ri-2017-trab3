@@ -1,4 +1,4 @@
-package Indexer;
+package Indexers;
 
 import Utils.Values;
 import java.io.FileNotFoundException;
