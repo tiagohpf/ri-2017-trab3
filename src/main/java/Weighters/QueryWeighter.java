@@ -1,4 +1,4 @@
-package Weights;
+package Weighters;
 
 import Utils.Values;
 import java.io.File;
@@ -22,14 +22,14 @@ import java.util.Set;
  */
 
 // Class that scores the queries
-public class QueryScoring {
+public class QueryWeighter {
     private final Map<String, Values> indexer;
     private final int numberOfDocs;
     private final Map<Integer, List<String>> queries;
     private final Map<Integer, Double> queryLength;
     private Map<Integer, Values> docScorer;
     
-    public QueryScoring(Map<String, Values> indexer, Map<Integer, List<String>> queries, int numberOfDocs) {
+    public QueryWeighter(Map<String, Values> indexer, Map<Integer, List<String>> queries, int numberOfDocs) {
         this.indexer = indexer;
         this.queries = queries;
         this.numberOfDocs = numberOfDocs;

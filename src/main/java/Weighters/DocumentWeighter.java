@@ -1,4 +1,4 @@
-package Weights;
+package Weighters;
 
 import Utils.Values;
 import java.io.File;
@@ -14,12 +14,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class IndexerWeight {
+public class DocumentWeighter {
     private Map<String, Values> indexerDocs;
     private final Map<Integer, List<String>> terms;
     private final Map<Integer, Double> docLength;
     
-    public IndexerWeight(Map<Integer, List<String>> terms) {
+    public DocumentWeighter(Map<Integer, List<String>> terms) {
         this.terms = terms;
         indexerDocs = new HashMap<>();
         docLength = new HashMap<>();

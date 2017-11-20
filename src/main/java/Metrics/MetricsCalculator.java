@@ -48,7 +48,7 @@ public class MetricsCalculator {
     }
       
     private void calculateMeasures() {
-        for (Map.Entry<Integer, Values> query : gsDocument.getRelevances().entrySet()) {
+        for (Map.Entry<Integer, Values> query : gsDocument.getRelevants().entrySet()) {
             int queryId = query.getKey();
             Map<Integer, Double> values = query.getValue().getValues();
             Map<Integer, Double> documents = scorer.get(queryId).getValues();
@@ -70,7 +70,7 @@ public class MetricsCalculator {
     }
     
     private void calculateAveragePrecision() {
-        for (Map.Entry<Integer, Values> query : gsDocument.getRelevances().entrySet()) {
+        for (Map.Entry<Integer, Values> query : gsDocument.getRelevants().entrySet()) {
             int queryId = query.getKey();
             Map<Integer, Double> values = query.getValue().getValues();
             Map<Integer, Double> documents = scorer.get(queryId).getValues();

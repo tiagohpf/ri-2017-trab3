@@ -1,9 +1,9 @@
 package Documents;
 
 /**
- * IR, October 2017
+ * IR, November 2017
  *
- * Assignment 2 
+ * Assignment 3 
  *
  * @author Tiago Faria, 73714, tiagohpf@ua.pt
  * @author David dos Santos Ferreira, 72219, davidsantosferreira@ua.pt

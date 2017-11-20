@@ -1,33 +1,31 @@
-package Indexers;
+package Indexer;
 
 import Utils.Values;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * IR, October 2017
+ * IR, November 2017
  *
- * Assignment 2 
+ * Assignment 3 
  *
  * @author Tiago Faria, 73714, tiagohpf@ua.pt
  * @author David dos Santos Ferreira, 72219, davidsantosferreira@ua.pt
  * 
  */
 
-// Class Indexer that uses Stopwording filtering, Stemmer and create an Indexer.
+// Class Indexer that create an Indexer.
 public class IndexerCreator {
-    // List of documents (tokens)
+    // List of terms (words)
     private final Map<Integer, List<String>> terms;
-    // Indexer. The Indexer has a list of documents like [term, docId: frequency] 
+    // Indexer. The Indexer has a list of documents like [term, docId: score] 
     private final Map<String, Values> indexer;
     
     /**
-     * Constructor. An Indexer needs the documents and the filename to write
+     * Constructor.
      * @param terms
-     * @param file
      * @throws FileNotFoundException
      */
     public IndexerCreator(Map<Integer, List<String>> terms) throws FileNotFoundException {
@@ -35,18 +33,25 @@ public class IndexerCreator {
         indexer = new HashMap<>();
     }
     
+    /**
+     * Get the indexer
+     * @return indexer 
+     */
     public Map<String, Values> getIndexer() {
         return indexer;
     }
     
+    /**
+     * Create a new indexer
+     */
     public void createIndexer() {
         for (Map.Entry<Integer, List<String>> doc_terms : terms.entrySet()) {
             List<String> words = doc_terms.getValue();
             int docId = doc_terms.getKey();
             /*
-            * If the indexer hasn't the term yet, it's created a new instance.
-            * If the indexer has the term and not the document, the pair <docId, frequency> is added to the list.
-            * If the indexer has the term and the docId, it's incrementd in his frequency.
+            * If the indexer hasn't the document's id yet, it's created a new instance.
+            * If the indexer has the document's id and not the term, the pair <term, frequency> is added.
+            * If the indexer has the document's and the term, it's incrementd frequency.
             */
             for (String word : words) {
                 if (indexer.keySet().contains(word)) {
