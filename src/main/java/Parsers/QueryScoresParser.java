@@ -35,7 +35,7 @@ public class QueryScoresParser implements Strategy<Document>{
      */
     @Override
     public Document parseFile(File file) {
-        Map<Integer, Values> relevances = new LinkedHashMap<>();
+        Map<Integer, Values> scores = new LinkedHashMap<>();
         try {
             sc = new Scanner(file);
             // Id of last query read
@@ -54,14 +54,14 @@ public class QueryScoresParser implements Strategy<Document>{
                  * Add the last values to the relevants map
                  */
                 if (queryId != actualId) {
-                    relevances.put(actualId, new Values(values));
+                    scores.put(actualId, new Values(values));
                     values = new HashMap<>();
                     actualId++;
                 }
                 values.put(docId, (double)relevance);
             }
-            relevances.put(actualId, new Values(values));
-            return new GSDocument(++documentId, relevances);
+            scores.put(actualId, new Values(values));
+            return new GSDocument(++documentId, scores);
         } catch (FileNotFoundException ex) {
             System.err.println("ERROR: File of Golden Standard not found!");
             System.exit(1);
