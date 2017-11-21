@@ -150,7 +150,7 @@ public class MetricsCalculator {
                  */
                 if (relevantDocuments.containsKey(document.getKey())) {
                     relevantDocsRead++;
-                    queryPrecision += (double) docsRead / relevantDocsRead;
+                    queryPrecision += (double) relevantDocsRead / docsRead;
                     if (!foundDocument) {
                         reciprocalRank += 1 / index;
                         foundDocument = true;

@@ -1,12 +1,14 @@
 import CorpusReader.CorpusReader;
 import Documents.Document;
 import Documents.GSDocument;
+import Documents.QueryScoresDocument;
 import Indexers.IndexerCreator;
 import Metrics.MetricsCalculator;
 import Parsers.GSParser;
 import Weighters.DocumentWeighter;
 import Parsers.Parser;
 import Parsers.QueryParser;
+import Parsers.QueryScoresParser;
 import Parsers.XMLParser;
 import Tokenizers.CompleteTokenizer;
 import Utils.Filter;
@@ -14,6 +16,7 @@ import Utils.Values;
 import Weighters.QueryWeighter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +120,9 @@ public class Main {
             Map<Integer, Values> queryScorer = queryWeighter.getQueryScorer();
             // Calculate evaluation and efficiency metrics
             MetricsCalculator metrics = new MetricsCalculator(queryScorer, gsDocument);
+            System.out.println("--------------------------------------------------------------------");
+            System.out.println("\t\t\t Assignment 3 Metrics");
+            System.out.println("--------------------------------------------------------------------");
             System.out.format("Precision: %.3f\n", metrics.getMeanPrecision());
             System.out.format("Recall: %.3f\n", metrics.getMeanRecall());
             System.out.format("F-Measure: %.3f\n", metrics.getMeanFMeasure());
@@ -126,6 +132,36 @@ public class Main {
             double latency = ((double) (endTime - startTime) / queries.size()) / 1000;
             System.out.format("Mean Latency: %.3f second/query\n", latency);
             System.out.format("Query Throughput: %d queries/second\n", Math.round(1 / latency));
+            
+            /**
+             * Results to the implementation of Assignment 2
+             * To view the results and compara, uncomment
+             */
+            /*Map<String, File> assign2Files = new LinkedHashMap<>();
+            assign2Files.put("Assignment 2 : Simple Tokenizer - Words In Documents", new File("assign2-results/ST1.txt"));
+            assign2Files.put("Assignment 2 : Simple Tokenizer - Frequency Of Words", new File("assign2-results/ST2.txt"));
+            assign2Files.put("Assignment 2 : Complete Tokenizer - Words In Documents", new File("assign2-results/CT1.txt"));
+            assign2Files.put("Assignment 2 : Coplete Tokenizer - Frequency Of Words", new File("assign2-results/CT2.txt"));
+            parser = new Parser(new QueryScoresParser());
+            for (Map.Entry<String, File> entry : assign2Files.entrySet()) {
+                long newStart = System.currentTimeMillis();
+                GSDocument newDocument = (GSDocument) parser.parseFile(entry.getValue());
+                Map<Integer, Values> newScorer = newDocument.getRelevants();
+                MetricsCalculator newMetrics = new MetricsCalculator(newScorer, gsDocument);
+                long newEnd = System.currentTimeMillis();
+                System.out.println("--------------------------------------------------------------------");
+                System.out.println("\t " + entry.getKey());
+                System.out.println("--------------------------------------------------------------------");
+                System.out.format("Precision: %.3f\n", newMetrics.getMeanPrecision());
+                System.out.format("Recall: %.3f\n", newMetrics.getMeanRecall());
+                System.out.format("F-Measure: %.3f\n", newMetrics.getMeanFMeasure());
+                System.out.format("Mean Average Precision: %.3f\n", newMetrics.getMeanAveragePrecision());
+                System.out.format("Mean Precision at Rank 10: %.5f\n", newMetrics.getMeanPrecisionAtRank10());
+                System.out.format("Mean Reciprocal Rank: %.3f\n", newMetrics.getMeanReciprocalRank());
+                double newLatency = ((double) (newEnd - newStart) / queries.size()) / 1000;
+                System.out.format("Mean Latency: %.3f second/query\n", newLatency);
+                System.out.format("Query Throughput: %d queries/second\n", Math.round(1 / newLatency));
+            }*/
         } else {
             System.err.println("ERROR: Invalid number of arguments!");
             System.out.println("USAGE: <file/dir> <stopwords> <queries> <gold standard> <indexer weights> <ranked queries>");
