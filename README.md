@@ -1,4 +1,4 @@
-# Indexer with tf-idf weights and Ranking System
+# Indexer with tf-idf Weights and a Ranking System
 Development of an indexer that supports tf-idf weights and a system that uses ranking.
 
 ## How To Run
