@@ -4,7 +4,7 @@ Development of an indexer that supports tf-idf weights and a system that uses ra
 ## How To Run
 Execute the application with the following command:
 ```
-doc stopwords queries GS weights scores relevance
+doc stopwords queries GS weights scores
 ```
 Parameters:
 - **doc** - name of document/directory to read;
